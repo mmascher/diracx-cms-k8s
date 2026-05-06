@@ -1,0 +1,80 @@
+global:
+  namespace: diracx-cms
+  hostname: localhost
+  releaseName: diracx-cms
+  storageClass: hostpath
+  storageClassRWX: hostpath
+
+# ── MySQL ─────────────────────────────────────
+mysql:
+  enabled: true
+  rootUser: root
+  rootPassword: "localhost-mysql-root-password"
+  appUser: diracx
+  appPassword: "localhost-mysql-password"
+  replicationPassword: "localhost-mysql-replication-password"
+
+# ── MinIO ─────────────────────────────────────
+minio:
+  enabled: true
+  rootUser: minio
+  rootPassword: "minio123"
+  accessKeyId: "minio"
+  secretAccessKey: "minio123"
+
+# ── OpenSearch ────────────────────────────────
+opensearch:
+  enabled: true
+  user: admin
+  password: "admin"
+
+# ── Dex (authentication) ──────────────────────
+dex:
+  staticClients:
+    - id: diracx-client
+      name: "DiracX UI"
+      public: true
+
+  staticPasswords:
+    - email: admin@example.com
+      # bcrypt hash for "admin"
+      hash: "$2a$10$7QJ6m0Yv1vZ6zQW5c5eZ6eQ7Wl0zYFz6FQcmGeXgnz9K/Y/xFd25G"
+      userID: "1"
+      username: "admin"
+
+# ── DiracX core config ────────────────────────
+diracx:
+  otelEnabled: false
+  otelGrpcInsecure: true
+
+  sandboxAutoCreateBucket: true
+  sandboxBucketName: diracx-sandbox
+
+  authAccessTokenExpireMinutes: 60
+  authRefreshTokenExpireMinutes: 1440
+
+  # databases used by template loops
+  sqlDbs:
+    - jobs
+    - users
+    - catalog
+
+  osDbs:
+    - logs
+    - metadata
+
+# ── External (disabled since using internal services) ──
+external:
+  mysql:
+    appUser: ""
+    appPassword: ""
+    rootUser: ""
+    rootPassword: ""
+
+  minio:
+    accessKeyId: ""
+    secretAccessKey: ""
+
+  opensearch:
+    user: ""
+    password: ""
