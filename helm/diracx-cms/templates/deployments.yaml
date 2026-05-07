@@ -89,6 +89,30 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["sh","-c","until echo -e \"HEAD /minio/health/live HTTP/1.1\\nHost: {{ $name }}-minio\\nConnection: close\\n\" | nc {{ $name }}-minio:9000 | grep \"HTTP/1.1 200 OK\"; do echo 'Waiting for minio...'; sleep 3; done;"]
         {{- end }}
+        - name: init-diracx-dbs
+          image: mysql:8.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Executing init-diracx-dbs.sql"
+              mysql \
+                -h {{ $name }}-mysql \
+                -u root \
+                -p"${MYSQL_ROOT_PASSWORD}" \
+                < /sql/init-diracx-dbs.sql
+
+              echo "Database initialization completed"
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+          volumeMounts:
+            - name: mysql-init-diracx-dbs
+              mountPath: /sql
 #        - name: init-sql
 #          image: {{ .Values.images.services }}
 #          imagePullPolicy: {{ .Values.images.pullPolicy }}
@@ -129,7 +153,6 @@ spec:
               echo "Container started"
               echo "Sleeping forever for debugging..."
               echo "init env : source /activate.sh"
-              echo "path env : export PYTHONPATH=/src/diracx-db/src"
               echo "init sql : python -m diracx.db init-sql"
               echo "start srv: uvicorn --factor diracx.routers:create_app --host=0.0.0.0 --port=8000 --proxy-headers --forwarded-allow-ips=*"
               sleep infinity
@@ -207,6 +230,9 @@ spec:
         - name: diracx-src
           persistentVolumeClaim:
             claimName: pvc-diracx-code
+        - name: mysql-init-diracx-dbs
+          configMap:
+            name: mysql-init-diracx-dbs
         - name: scripts-init-secrets
           configMap:
             name: {{ $name }}-init-secrets
