@@ -89,68 +89,88 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["sh","-c","until echo -e \"HEAD /minio/health/live HTTP/1.1\\nHost: {{ $name }}-minio\\nConnection: close\\n\" | nc {{ $name }}-minio:9000 | grep \"HTTP/1.1 200 OK\"; do echo 'Waiting for minio...'; sleep 3; done;"]
         {{- end }}
-        # init-sql
-        - name: init-sql
-          image: {{ .Values.images.services }}
-          imagePullPolicy: {{ .Values.images.pullPolicy }}
-          command: ["/bin/bash", "/entrypoint.sh"]
-          args: ["/bin/bash", "/scripts/init-sql"]
-          env:
-          {{- range .Values.diracx.sqlDbs }}
-            - name: DIRACX_DB_URL_{{ . | upper }}
-              valueFrom:
-                secretKeyRef:
-                  name: diracx-sql-root-connection-urls
-                  key: DIRACX_DB_URL_{{ . | upper }}
-          {{- end }}
-          volumeMounts:
-            - name: scripts-init-sql
-              mountPath: /scripts
-            - name: container-entrypoint
-              mountPath: /entrypoint.sh
-              subPath: entrypoint.sh
+#        - name: init-sql
+#          image: {{ .Values.images.services }}
+#          imagePullPolicy: {{ .Values.images.pullPolicy }}
+#          command:
+#            - /bin/bash
+#            - -c
+#            - |
+#              source /activate.sh
+#              export PYTHONPATH=${PYTHONPATH:-}:/src/diracx-db/src
+#              echo "===== /scripts/init-sql ====="
+#              cat /scripts/init-sql
+#              echo "============================="
+#              exec /bin/bash /scripts/init-sql
+#          env:
+#          {{- range .Values.diracx.sqlDbs }}
+#            - name: DIRACX_DB_URL_{{ . | upper }}
+#              valueFrom:
+#                secretKeyRef:
+#                  name: diracx-sql-root-connection-urls
+#                  key: DIRACX_DB_URL_{{ . | upper }}
+#          {{- end }}
+#          volumeMounts:
+#            - name: scripts-init-sql
+#              mountPath: /scripts
+#            - name: container-entrypoint
+#              mountPath: /entrypoint.sh
+#              subPath: entrypoint.sh
+#            - name: diracx-src
+#              mountPath: /src
       containers:
         - name: diracx
           image: {{ .Values.images.services }}
           imagePullPolicy: {{ .Values.images.pullPolicy }}
           command:
-            - /usr/local/bin/_entrypoint.sh
-            - tini
-            - --
-            - bash
-            - /entrypoint.sh
-          args:
-            - uvicorn
-            - --factory
-            - diracx.routers:create_app
-            - --host=0.0.0.0
-            - --port=8000
-            - --proxy-headers
-            - --forwarded-allow-ips=*
-          ports:
-            - name: http
-              containerPort: 8000
-          startupProbe:
-            httpGet:
-              path: /api/health/startup
-              port: http
-            failureThreshold: 30
-            periodSeconds: 5
-            timeoutSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /api/health/live
-              port: http
-            failureThreshold: 3
-            periodSeconds: 20
-            timeoutSeconds: 15
-          readinessProbe:
-            httpGet:
-              path: /api/health/ready
-              port: http
-            failureThreshold: 3
-            periodSeconds: 20
-            timeoutSeconds: 15
+            - /bin/bash
+            - -c
+            - |
+              echo "Container started"
+              echo "Sleeping forever for debugging..."
+              echo "init env : source /activate.sh"
+              echo "path env : export PYTHONPATH=/src/diracx-db/src"
+              echo "init sql : python -m diracx.db init-sql"
+              echo "start srv: uvicorn --factor diracx.routers:create_app --host=0.0.0.0 --port=8000 --proxy-headers --forwarded-allow-ips=*"
+              sleep infinity
+#          command:
+#            - /usr/local/bin/_entrypoint.sh
+#            - tini
+#            - --
+#            - bash
+#            - /entrypoint.sh
+#          args:
+#            - uvicorn
+#            - --factory
+#            - diracx.routers:create_app
+#            - --host=0.0.0.0
+#            - --port=8000
+#            - --proxy-headers
+#            - --forwarded-allow-ips=*
+#          ports:
+#            - name: http
+#              containerPort: 8000
+#          startupProbe:
+#            httpGet:
+#              path: /api/health/startup
+#              port: http
+#            failureThreshold: 30
+#            periodSeconds: 5
+#            timeoutSeconds: 5
+#          livenessProbe:
+#            httpGet:
+#              path: /api/health/live
+#              port: http
+#            failureThreshold: 3
+#            periodSeconds: 20
+#            timeoutSeconds: 15
+#          readinessProbe:
+#            httpGet:
+#              path: /api/health/ready
+#              port: http
+#            failureThreshold: 3
+#            periodSeconds: 20
+#            timeoutSeconds: 15
           envFrom:
             - secretRef:
                 name: diracx-secrets

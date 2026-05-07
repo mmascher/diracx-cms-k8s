@@ -175,6 +175,7 @@ persistence:
     # Set to false if you are using pre-built images and don't need live source
     enabled: true
     size: 1Gi
+    path: ""
 
 # ─── Service accounts ────────────────────────────────────────────────────────
 serviceAccounts:

@@ -58,10 +58,21 @@ diracx:
     - jobs
     - users
     - catalog
+    - authdb
+    - jobdb
+    - jobloggingdb
+    - pilotagentsdb
+    - sandboxmetadatadb
+    - taskqueuedb
 
   osDbs:
     - logs
     - metadata
+
+persistence:
+  diracxCode:
+    enabled: true
+    path: /Users/vk/CMS/DMWM/GIT/DIRAC/diracx
 
 # ── External (disabled since using internal services) ──
 external:
