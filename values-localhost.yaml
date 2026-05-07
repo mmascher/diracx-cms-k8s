@@ -55,20 +55,16 @@ diracx:
 
   # databases used by template loops
   sqlDbs:
-    - jobs
-    - users
-    - catalog
-    - authdb
-    - jobdb
-    - jobloggingdb
-    - jobparametersdb
-    - pilotagentsdb
-    - sandboxmetadatadb
-    - taskqueuedb
+    - AuthDB
+    - JobDB
+    - JobLoggingDB
+    - PilotAgentsDB
+    - SandboxMetadataDB
+    - DiracXAuthDB
+    - TaskQueueDB
 
   osDbs:
-    - logs
-    - metadata
+    - JobParametersDB
 
 persistence:
   diracxCode:
