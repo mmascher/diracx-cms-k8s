@@ -152,9 +152,9 @@ spec:
             - |
               echo "Container started"
               echo "Sleeping forever for debugging..."
-              echo "init env : source /activate.sh"
-              echo "init sql : python -m diracx.db init-sql"
-              echo "start srv: uvicorn --factor diracx.routers:create_app --host=0.0.0.0 --port=8000 --proxy-headers --forwarded-allow-ips=*"
+              echo "step1: init env  $ source /activate.sh"
+              echo "step2: init sql  $ python -m diracx.db init-sql"
+              echo "step3: start srv $ uvicorn --factor diracx.routers:create_app --host=0.0.0.0 --port=8000 --proxy-headers --forwarded-allow-ips=*"
               sleep infinity
 #          command:
 #            - /usr/local/bin/_entrypoint.sh
@@ -170,6 +170,7 @@ spec:
 #            - --port=8000
 #            - --proxy-headers
 #            - --forwarded-allow-ips=*
+#            - --log-level=debug
 #          ports:
 #            - name: http
 #              containerPort: 8000
@@ -180,6 +181,7 @@ spec:
 #            failureThreshold: 30
 #            periodSeconds: 5
 #            timeoutSeconds: 5
+#            initialDelaySeconds: 30
 #          livenessProbe:
 #            httpGet:
 #              path: /api/health/live
@@ -187,6 +189,7 @@ spec:
 #            failureThreshold: 3
 #            periodSeconds: 20
 #            timeoutSeconds: 15
+#            initialDelaySeconds: 30
 #          readinessProbe:
 #            httpGet:
 #              path: /api/health/ready
@@ -194,6 +197,7 @@ spec:
 #            failureThreshold: 3
 #            periodSeconds: 20
 #            timeoutSeconds: 15
+#            initialDelaySeconds: 30
           envFrom:
             - secretRef:
                 name: diracx-secrets

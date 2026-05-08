@@ -27,6 +27,7 @@ opensearch:
   enabled: true
   user: admin
   password: "admin"
+  useSSL: false
 
 # ── Dex (authentication) ──────────────────────
 dex:

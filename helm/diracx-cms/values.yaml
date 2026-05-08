@@ -111,6 +111,7 @@ opensearch:
   # Credentials – change for production
   user: admin
   password: admin
+  useSSL: false
 
 # ─── MinIO (bundled Deployment) ──────────────────────────────────────────────
 minio:

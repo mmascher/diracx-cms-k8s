@@ -13,7 +13,7 @@ metadata:
     app.kubernetes.io/instance: {{ $name }}
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  #type: ClusterIP
   selector:
     app.kubernetes.io/name: diracx
     app.kubernetes.io/instance: {{ $name }}
