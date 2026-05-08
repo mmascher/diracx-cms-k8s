@@ -55,8 +55,7 @@ metadata:
     app.kubernetes.io/instance: {{ $name }}
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
-  #type: NodePort
-  type: ClusterIP
+  type: NodePort
   selector:
     app.kubernetes.io/name: dex
     app.kubernetes.io/instance: {{ $name }}
@@ -64,13 +63,13 @@ spec:
     - name: http
       appProtocol: http
       port: 8000
-      targetPort: http
-      #nodePort: {{ .Values.dex.nodePort }}
+      #targetPort: http
+      nodePort: {{ .Values.dex.nodePort }}
     - name: telemetry
       appProtocol: http
       port: 5558
-      targetPort: telemetry
-      #nodePort: {{ .Values.dex.telemetryNodePort }}
+      #targetPort: telemetry
+      nodePort: {{ .Values.dex.telemetryNodePort }}
 
 {{- if .Values.mysql.enabled }}
 # ── MySQL ─────────────────────────────────────────────────────────────────────
@@ -179,16 +178,16 @@ metadata:
     app.kubernetes.io/instance: {{ $name }}
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
-  #type: NodePort
-  type: ClusterIP
+  type: NodePort
+  #type: ClusterIP
   selector:
     app.kubernetes.io/name: minio
     app.kubernetes.io/instance: {{ $name }}
   ports:
     - name: http
       port: 9000
-      targetPort: 9000
-      #nodePort: {{ .Values.minio.nodePort }}
+      #targetPort: 9000
+      nodePort: {{ .Values.minio.nodePort }}
 ---
 apiVersion: v1
 kind: Service

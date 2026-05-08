@@ -34,11 +34,7 @@ MinIO endpoint URL.
 {{- define "diracx-cms.minioEndpoint" -}}
 {{- if .Values.minio.enabled -}}
 
-{{- if .Values.minio.nodePort -}}
-http://diracx-cms-minio:{{ .Values.minio.nodePort }}
-{{- else -}}
-http://diracx-cms-minio:32000
-{{- end }}
+http://diracx-cms-minio:9000
 
 {{- else -}}
 {{ required "external.minio.endpointUrl is required when minio.enabled=false" .Values.external.minio.endpointUrl }}
