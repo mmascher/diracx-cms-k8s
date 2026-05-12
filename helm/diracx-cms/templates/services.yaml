@@ -14,6 +14,7 @@ metadata:
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
   #type: ClusterIP
+  type: NodePort
   selector:
     app.kubernetes.io/name: diracx
     app.kubernetes.io/instance: {{ $name }}
@@ -21,6 +22,7 @@ spec:
     - name: http
       port: 8000
       targetPort: http
+      nodePort: {{ .Values.web.nodePort | default 32100 }}
 
 # ── DiracX Web UI ─────────────────────────────────────────────────────────────
 ---
@@ -34,7 +36,8 @@ metadata:
     app.kubernetes.io/instance: {{ $name }}
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
-  type: ClusterIP
+  #type: ClusterIP
+  type: NodePort
   selector:
     app.kubernetes.io/name: diracx-web
     app.kubernetes.io/instance: {{ $name }}
@@ -42,6 +45,7 @@ spec:
     - name: http
       port: 8080
       targetPort: http
+      nodePort: {{ .Values.web.nodePort | default 32101 }}
 
 # ── Dex ───────────────────────────────────────────────────────────────────────
 ---
@@ -63,13 +67,13 @@ spec:
     - name: http
       appProtocol: http
       port: 8000
-      #targetPort: http
-      nodePort: {{ .Values.dex.nodePort }}
+      targetPort: http
+      nodePort: {{ .Values.dex.nodePort | default 32002 }}
     - name: telemetry
       appProtocol: http
       port: 5558
-      #targetPort: telemetry
-      nodePort: {{ .Values.dex.telemetryNodePort }}
+      targetPort: telemetry
+      nodePort: {{ .Values.dex.telemetryNodePort | default 30308 }}
 
 {{- if .Values.mysql.enabled }}
 # ── MySQL ─────────────────────────────────────────────────────────────────────
@@ -105,7 +109,7 @@ metadata:
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
-  clusterIP: None
+  #clusterIP: None
   selector:
     app.kubernetes.io/name: mysql
     app.kubernetes.io/instance: {{ $name }}
@@ -152,7 +156,7 @@ metadata:
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
-  clusterIP: None
+  #clusterIP: None
   selector:
     app.kubernetes.io/name: opensearch
     app.kubernetes.io/instance: {{ $name }}
@@ -186,8 +190,8 @@ spec:
   ports:
     - name: http
       port: 9000
-      #targetPort: 9000
-      nodePort: {{ .Values.minio.nodePort }}
+      targetPort: 9000
+      nodePort: {{ .Values.minio.nodePort | default 32000 }}
 ---
 apiVersion: v1
 kind: Service
@@ -207,5 +211,5 @@ spec:
     - name: http
       port: 9001
       targetPort: 9001
-      nodePort: {{ .Values.minio.consoleNodePort }}
+      nodePort: {{ .Values.minio.consoleNodePort | default 32001 }}
 {{- end }}
