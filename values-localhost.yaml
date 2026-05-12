@@ -40,7 +40,7 @@ dex:
     - email: admin@example.com
       # bcrypt hash for "admin"
       hash: "$2a$10$7QJ6m0Yv1vZ6zQW5c5eZ6eQ7Wl0zYFz6FQcmGeXgnz9K/Y/xFd25G"
-      userID: "1"
+      userID: "527B4AB9-95AE-4141-98B4-20E165834E97"
       username: "admin"
 
 # ── DiracX core config ────────────────────────
