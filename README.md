@@ -434,6 +434,19 @@ raw manifests into parameterized templates. The upstream DiracX Helm chart lives
 [github.com/DIRACGrid/diracx-charts](https://github.com/DIRACGrid/diracx-charts) and is
 the recommended path for production deployments.
 
+```
+# to install diracx-cms helm chart please use the following command:
+helm install diracx-cms ./helm/diracx-cms -f values-localhost.yaml --namespace diracx-cms --create-namespace --wait
+
+# to uninstall helm chart you may use
+helm uninstall diracx-cms -n diracx-cms
+
+# to list existing helm chart
+helm list -n diracx-cms
+```
+
+For more information please consule helm/diracx-cms/README.md file
+
 ---
 
 ### Integration
