@@ -1,6 +1,6 @@
 global:
   namespace: diracx-cms
-  hostname: localhost
+  hostname: kubernetes.docker.internal
   releaseName: diracx-cms
   storageClass: hostpath
   storageClassRWX: hostpath
@@ -39,9 +39,13 @@ dex:
   staticPasswords:
     - email: admin@example.com
       # bcrypt hash for "admin"
-      hash: "$2a$10$7QJ6m0Yv1vZ6zQW5c5eZ6eQ7Wl0zYFz6FQcmGeXgnz9K/Y/xFd25G"
-      userID: "527B4AB9-95AE-4141-98B4-20E165834E97"
-      username: "admin"
+      hash: "$2y$10$tOLCbjaNP.MiQcsk3ui.L.uynTqLdCedt8pF/Q0m1eJgK72faUFGW"
+      userID: admin
+      username: admin
+
+# local CS configuration file
+csConfig:
+  file: files/default.yml
 
 # ── DiracX core config ────────────────────────
 diracx:
