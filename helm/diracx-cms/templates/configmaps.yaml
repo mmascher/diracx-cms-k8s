@@ -20,6 +20,14 @@ data:
     else
       eval "$(micromamba shell hook --shell=posix)" && micromamba activate base
     fi
+    if [ -f /cs_config/default.yml ]; then
+      echo "Using provided Confirutaion Service file: /cs_config/default.yml"
+      if [ -f /cs_store/initialRepo/default.yml ] && [ -f /cs_config/default.yml ]; then
+        echo "Copy /cs_config/default.yml to /cs_store/initialRepo/default.yml"
+        rm /cs_store/initialRepo/default.yml
+        cp /cs_config/default.yml /cs_store/initialRepo/default.yml
+      fi
+    fi
     exec "$@"
 ---
 # init-sql script
@@ -50,6 +58,20 @@ data:
     set -euo pipefail
     python -m diracx.db init-os
 ---
+# cs-config
+{{- if .Values.csConfig.file }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "diracx-cms.name" . }}-cs-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{ include "diracx-cms.labels" . | nindent 4 }}
+data:
+  default.yml: |
+{{ .Files.Get .Values.csConfig.file | indent 4 }}
+{{- end }}
+---
 # init-cs script
 apiVersion: v1
 kind: ConfigMap
@@ -71,7 +93,7 @@ data:
 
     # Optional debug (very useful)
     echo "PYTHONPATH=$PYTHONPATH"
-    ls -l /src || true
+    #ls -l /src || true
 
     # 3. Initialize the Configuration Service
     echo "Initializing Configuration Service in /cs_store..."
@@ -84,7 +106,6 @@ data:
       echo "Creating Configuration Service at $CS_DIR..."
       dirac internal generate-cs "$CS_DIR"
     fi
-
     echo "CS initialization complete."
 ---
 # init-secrets script

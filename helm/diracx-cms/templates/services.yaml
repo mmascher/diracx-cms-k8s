@@ -13,8 +13,8 @@ metadata:
     app.kubernetes.io/instance: {{ $name }}
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
-  #type: ClusterIP
-  type: NodePort
+  type: ClusterIP
+  #type: NodePort
   selector:
     app.kubernetes.io/name: diracx
     app.kubernetes.io/instance: {{ $name }}
@@ -22,7 +22,7 @@ spec:
     - name: http
       port: 8000
       targetPort: http
-      nodePort: {{ .Values.web.nodePort | default 32100 }}
+      #nodePort: {{ .Values.web.nodePort | default 32100 }}
 
 # ── DiracX Web UI ─────────────────────────────────────────────────────────────
 ---
@@ -36,8 +36,8 @@ metadata:
     app.kubernetes.io/instance: {{ $name }}
     {{ include "diracx-cms.labels" . | nindent 4 }}
 spec:
-  #type: ClusterIP
-  type: NodePort
+  type: ClusterIP
+  #type: NodePort
   selector:
     app.kubernetes.io/name: diracx-web
     app.kubernetes.io/instance: {{ $name }}
@@ -45,7 +45,7 @@ spec:
     - name: http
       port: 8080
       targetPort: http
-      nodePort: {{ .Values.web.nodePort | default 32101 }}
+      #nodePort: {{ .Values.web.nodePort | default 32101 }}
 
 # ── Dex ───────────────────────────────────────────────────────────────────────
 ---

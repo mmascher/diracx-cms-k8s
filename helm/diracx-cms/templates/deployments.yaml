@@ -47,11 +47,15 @@ spec:
           volumeMounts:
             - name: scripts-init-cs
               mountPath: /scripts
-            - name: cs-store-mount
-              mountPath: /cs_store
             - name: container-entrypoint
               mountPath: /entrypoint.sh
               subPath: entrypoint.sh
+            - name: cs-store-mount
+              mountPath: /cs_store
+            {{- if .Values.csConfig.file }}
+            - name: cs-config-file
+              mountPath: /cs_config
+            {{- end }}
         # init-keystore
         - name: init-keystore
           image: {{ .Values.images.services }}
@@ -173,6 +177,8 @@ spec:
             - --proxy-headers
             - --forwarded-allow-ips=*
             - --log-level=debug
+            - --reload-dir /src
+            - --reload
           ports:
             - name: http
               containerPort: 8000
@@ -219,6 +225,10 @@ spec:
               mountPath: /keystore
             - name: diracx-src
               mountPath: /src
+            {{- if .Values.csConfig.file }}
+            - name: cs-config-file
+              mountPath: /cs_config
+            {{- end }}
       volumes:
         - name: cs-store-mount
           persistentVolumeClaim:
@@ -257,6 +267,11 @@ spec:
             defaultMode: 0755
         - name: keystore-tmp
           emptyDir: {}
+        {{- if .Values.csConfig.file }}
+        - name: cs-config-file
+          configMap:
+            name: {{ $name }}-cs-config
+        {{- end }}
 
 # ── DiracX Web UI ─────────────────────────────────────────────────────────────
 ---

@@ -43,6 +43,11 @@ images:
   opensearch: opensearchproject/opensearch:2.8.0
   pullPolicy: Always
 
+csConfig:
+  # If set, the chart will copy this file into the init‑cs ConfigMap.
+  # Example: default.yaml (must be a file reachable from the Helm client)
+  file: ""
+
 # ─── DiracX API ──────────────────────────────────────────────────────────────
 diracx:
   replicas: 1

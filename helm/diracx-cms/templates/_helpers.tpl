@@ -45,7 +45,7 @@ http://diracx-cms-minio:9000
 DiracX public base URL (used for auth redirects and token issuer).
 */}}
 {{- define "diracx-cms.publicUrl" -}}
-https://{{ .Values.global.hostname }}:8000
+https://{{ .Values.global.hostname }}
 {{- end }}
 
 {{/*
