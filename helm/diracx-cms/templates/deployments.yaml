@@ -100,14 +100,24 @@ spec:
             - /bin/sh
             - -c
             - |
-              echo "Executing init-diracx-dbs.sql"
+              echo "Executing init-diracx-dbs.sql on {{$name}}-mysql"
+              cat /sql/init-diracx-dbs.sql
               mysql \
                 -h {{ $name }}-mysql \
                 -u root \
                 -p"${MYSQL_ROOT_PASSWORD}" \
                 < /sql/init-diracx-dbs.sql
-
               echo "Database initialization completed"
+              mysql -h  {{ $name }}-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW DATABASES"
+              echo "Executing diracx_auth_db.sql on {{$name}}-mysql"
+              cat /sql2/diracx_auth_db.sql
+              mysql \
+                -h {{ $name }}-mysql \
+                -u root \
+                -p"${MYSQL_ROOT_PASSWORD}" \
+              < /sql2/diracx_auth_db.sql
+              mysql -h  {{ $name }}-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "USE AuthDB; SHOW TABLES"
+              echo "AuthDB database initialization completed"
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -117,6 +127,8 @@ spec:
           volumeMounts:
             - name: mysql-init-diracx-dbs
               mountPath: /sql
+            - name: sqlite-init-diracx-auth-db
+              mountPath: /sql2
 #        - name: init-sql
 #          image: {{ .Values.images.services }}
 #          imagePullPolicy: {{ .Values.images.pullPolicy }}
@@ -177,8 +189,11 @@ spec:
             - --proxy-headers
             - --forwarded-allow-ips=*
             - --log-level=debug
-            - --reload-dir /src
             - --reload
+            - --reload-dir
+            - /app/.pixi/envs/container-services/lib/python3.11/site-packages/diracx
+            - --reload-dir
+            - /src
           ports:
             - name: http
               containerPort: 8000
@@ -249,6 +264,9 @@ spec:
         - name: mysql-init-diracx-dbs
           configMap:
             name: mysql-init-diracx-dbs
+        - name: sqlite-init-diracx-auth-db
+          configMap:
+            name: diracx-auth-db-config
         - name: scripts-init-secrets
           configMap:
             name: {{ $name }}-init-secrets
