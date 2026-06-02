@@ -47,11 +47,15 @@ spec:
           volumeMounts:
             - name: scripts-init-cs
               mountPath: /scripts
-            - name: cs-store-mount
-              mountPath: /cs_store
             - name: container-entrypoint
               mountPath: /entrypoint.sh
               subPath: entrypoint.sh
+            - name: cs-store-mount
+              mountPath: /cs_store
+            {{- if .Values.csConfig.file }}
+            - name: cs-config-file
+              mountPath: /cs_config
+            {{- end }}
         # init-keystore
         - name: init-keystore
           image: {{ .Values.images.services }}
@@ -96,14 +100,24 @@ spec:
             - /bin/sh
             - -c
             - |
-              echo "Executing init-diracx-dbs.sql"
+              echo "Executing init-diracx-dbs.sql on {{$name}}-mysql"
+              cat /sql/init-diracx-dbs.sql
               mysql \
                 -h {{ $name }}-mysql \
                 -u root \
                 -p"${MYSQL_ROOT_PASSWORD}" \
                 < /sql/init-diracx-dbs.sql
-
               echo "Database initialization completed"
+              mysql -h  {{ $name }}-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW DATABASES"
+              echo "Executing diracx_auth_db.sql on {{$name}}-mysql"
+              cat /sql2/diracx_auth_db.sql
+              mysql \
+                -h {{ $name }}-mysql \
+                -u root \
+                -p"${MYSQL_ROOT_PASSWORD}" \
+              < /sql2/diracx_auth_db.sql
+              mysql -h  {{ $name }}-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "USE AuthDB; SHOW TABLES"
+              echo "AuthDB database initialization completed"
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -113,6 +127,8 @@ spec:
           volumeMounts:
             - name: mysql-init-diracx-dbs
               mountPath: /sql
+            - name: sqlite-init-diracx-auth-db
+              mountPath: /sql2
 #        - name: init-sql
 #          image: {{ .Values.images.services }}
 #          imagePullPolicy: {{ .Values.images.pullPolicy }}
@@ -173,6 +189,11 @@ spec:
             - --proxy-headers
             - --forwarded-allow-ips=*
             - --log-level=debug
+            - --reload
+            - --reload-dir
+            - /app/.pixi/envs/container-services/lib/python3.11/site-packages/diracx
+            - --reload-dir
+            - /src
           ports:
             - name: http
               containerPort: 8000
@@ -219,6 +240,10 @@ spec:
               mountPath: /keystore
             - name: diracx-src
               mountPath: /src
+            {{- if .Values.csConfig.file }}
+            - name: cs-config-file
+              mountPath: /cs_config
+            {{- end }}
       volumes:
         - name: cs-store-mount
           persistentVolumeClaim:
@@ -239,6 +264,9 @@ spec:
         - name: mysql-init-diracx-dbs
           configMap:
             name: mysql-init-diracx-dbs
+        - name: sqlite-init-diracx-auth-db
+          configMap:
+            name: diracx-auth-db-config
         - name: scripts-init-secrets
           configMap:
             name: {{ $name }}-init-secrets
@@ -257,6 +285,11 @@ spec:
             defaultMode: 0755
         - name: keystore-tmp
           emptyDir: {}
+        {{- if .Values.csConfig.file }}
+        - name: cs-config-file
+          configMap:
+            name: {{ $name }}-cs-config
+        {{- end }}
 
 # ── DiracX Web UI ─────────────────────────────────────────────────────────────
 ---

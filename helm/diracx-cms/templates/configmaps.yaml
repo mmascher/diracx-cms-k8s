@@ -20,6 +20,23 @@ data:
     else
       eval "$(micromamba shell hook --shell=posix)" && micromamba activate base
     fi
+    if [ -f /cs_config/default.yml ]; then
+      echo "Using provided Configuration Service file: /cs_config/default.yml"
+      if [ -f /cs_store/initialRepo/default.yml ] && [ -f /cs_config/default.yml ]; then
+        echo "Copy /cs_config/default.yml to /cs_store/initialRepo/default.yml"
+        rm /cs_store/initialRepo/default.yml
+        cp /cs_config/default.yml /cs_store/initialRepo/default.yml
+        # the default.yml file is provided locally
+        # we MUST run git commit on this rewrite to make sure
+        # that master branch contains this changes
+        # see diracx implementation in core/config/sources.py
+        # https://github.com/DIRACGrid/diracx/blob/main/diracx-core/src/diracx/core/config/sources.py
+        cd /cs_store/initialRepo/
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+        git commit -m "update" -a
+      fi
+    fi
     exec "$@"
 ---
 # init-sql script
@@ -50,6 +67,20 @@ data:
     set -euo pipefail
     python -m diracx.db init-os
 ---
+# cs-config
+{{- if .Values.csConfig.file }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "diracx-cms.name" . }}-cs-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{ include "diracx-cms.labels" . | nindent 4 }}
+data:
+  default.yml: |
+{{ .Files.Get .Values.csConfig.file | indent 4 }}
+{{- end }}
+---
 # init-cs script
 apiVersion: v1
 kind: ConfigMap
@@ -71,7 +102,7 @@ data:
 
     # Optional debug (very useful)
     echo "PYTHONPATH=$PYTHONPATH"
-    ls -l /src || true
+    #ls -l /src || true
 
     # 3. Initialize the Configuration Service
     echo "Initializing Configuration Service in /cs_store..."
@@ -84,7 +115,6 @@ data:
       echo "Creating Configuration Service at $CS_DIR..."
       dirac internal generate-cs "$CS_DIR"
     fi
-
     echo "CS initialization complete."
 ---
 # init-secrets script
@@ -201,6 +231,45 @@ metadata:
     app.kubernetes.io/managed-by: Helm
   name: mysql-init-diracx-dbs
   namespace: {{ $ns }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: diracx-auth-db-config
+  namespace: {{ $ns }}
+data:
+  diracx_auth_db.sql: |
+    CREATE DATABASE IF NOT EXISTS `AuthDB`;
+    USE AuthDB;
+    CREATE TABLE IF NOT EXISTS DeviceFlows (
+        UserCode VARCHAR(255) PRIMARY KEY,
+        Status ENUM('PENDING', 'ERROR', 'READY', 'DONE') DEFAULT 'PENDING',
+        CreationTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ClientID VARCHAR(255),
+        Scope VARCHAR(1024),
+        DeviceCode VARCHAR(128) UNIQUE,
+        IDToken JSON
+    );
+    CREATE TABLE IF NOT EXISTS AuthorizationFlows (
+        UUID CHAR(36) PRIMARY KEY,
+        Status ENUM('PENDING', 'ERROR', 'READY', 'DONE') DEFAULT 'PENDING',
+        ClientID VARCHAR(255),
+        CreationTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        Scope VARCHAR(1024),
+        CodeChallenge VARCHAR(255),
+        CodeChallengeMethod VARCHAR(8),
+        RedirectURI VARCHAR(255),
+        Code VARCHAR(255),
+        IDToken JSON
+    );
+    CREATE TABLE IF NOT EXISTS RefreshTokens (
+        JTI CHAR(36) PRIMARY KEY,
+        Status ENUM('CREATED', 'REVOKED') DEFAULT 'CREATED',
+        CreationTime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        Scope VARCHAR(1024),
+        Sub VARCHAR(1024),
+        PreferredUsername VARCHAR(255)
+    );
 ---
 apiVersion: v1
 data:
