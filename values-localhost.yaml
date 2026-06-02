@@ -32,7 +32,7 @@ opensearch:
 # ── Dex (authentication) ──────────────────────
 dex:
   staticClients:
-    - id: diracx-client
+    - id: myDIRACClientID
       name: "DiracX UI"
       public: true
 
