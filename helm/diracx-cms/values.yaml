@@ -99,7 +99,7 @@ mysql:
   enabled: true
   replicas: 1
   appUser: sqldiracx
-  dataVolumeSize: 8Gi
+  dataVolumeSize: 1Gi
   # Passwords – override with strong values for production
   # These are used by the init-secrets job to create / update k8s secrets.
   rootPassword: ""       # generated randomly by init-secrets when blank
@@ -111,7 +111,7 @@ opensearch:
   # Set to false to use an external OpenSearch instance (fill in external.opensearch)
   enabled: true
   replicas: 1
-  dataVolumeSize: 8Gi
+  dataVolumeSize: 1Gi
   javaOpts: "-Xms256m -Xmx256m"
   # Credentials – change for production
   user: admin
@@ -124,7 +124,7 @@ minio:
   enabled: true
   nodePort: 32000
   consoleNodePort: 32001
-  dataVolumeSize: 10Gi
+  dataVolumeSize: 1Gi
   rootUser: rootuser
   rootPassword: rootpass123
   # Access credentials used by DiracX to write sandbox files
