@@ -29,6 +29,14 @@ spec:
         app.kubernetes.io/component: primary
     spec:
       serviceAccountName: {{ $name }}-mysql
+      initContainers:
+        - name: fsgroup-volume
+          image: docker.io/library/busybox:latest
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "chown -R 1001:1001 /bitnami/mysql"]
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/mysql
       containers:
         - name: mysql
           image: {{ .Values.images.mysql }}
