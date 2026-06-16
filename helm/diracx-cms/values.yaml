@@ -39,7 +39,8 @@ images:
   web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a10
   dex:       ghcr.io/dexidp/dex:v2.41.1
   minio:     quay.io/minio/minio:RELEASE.2023-06-19T19-52-50Z
-  mysql:     docker.io/bitnamilegacy/mysql:8.0.34-debian-11-r8
+  mysql:     ubuntu/mysql:8.4-24.04_edge
+  #mysql:     docker.io/bitnamilegacy/mysql:8.0.34-debian-11-r8
   opensearch: opensearchproject/opensearch:2.8.0
   pullPolicy: Always
 
