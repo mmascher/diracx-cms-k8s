@@ -26,6 +26,8 @@ data:
         echo "Copy /cs_config/default.yml to /cs_store/initialRepo/default.yml"
         rm /cs_store/initialRepo/default.yml
         cp /cs_config/default.yml /cs_store/initialRepo/default.yml
+        echo "ls -al /cs_store/initialRepo/default.yml"
+        ls -al /cs_store/initialRepo/default.yml
         # the default.yml file is provided locally
         # we MUST run git commit on this rewrite to make sure
         # that master branch contains this changes
@@ -35,6 +37,7 @@ data:
         git config --global user.email "you@example.com"
         git config --global user.name "Your Name"
         git commit -m "update" -a
+        cd -
       fi
     fi
     exec "$@"
@@ -129,7 +132,11 @@ data:
   init-secrets: |
     #!/usr/bin/env bash
     NAMESPACE="{{ $ns }}"
+    {{- if .Values.mysql.enabled }}
     MYSQL_HOST="{{ include "diracx-cms.mysqlHost" . }}"
+    {{- else }}
+    MYSQL_HOST={{ printf "%s:%v" .Values.external.mysql.host .Values.external.mysql.port | quote }}
+    {{- end }}
     MYSQL_APP_USER="{{ (.Values.mysql.enabled | ternary .Values.mysql.appUser .Values.external.mysql.appUser) }}"
     MYSQL_SECRET_NAME="mysql-secret"
     OS_HOST="{{ include "diracx-cms.osHost" . }}"
@@ -204,27 +211,29 @@ data:
 ---
 apiVersion: v1
 data:
-  init-diracx-dbs.sql: 'CREATE DATABASE IF NOT EXISTS `AuthDB`;
-    GRANT ALL PRIVILEGES ON AuthDB.* TO ''diracx''@''%'';
+  init-diracx-dbs.sql: |
+    {{- if .Values.mysql.enabled }}
+    CREATE DATABASE IF NOT EXISTS `AuthDB`;
+    GRANT ALL PRIVILEGES ON AuthDB.* TO 'diracx'@'%';
 
     CREATE DATABASE IF NOT EXISTS `JobDB`;
-    GRANT ALL PRIVILEGES ON JobDB.* TO ''diracx''@''%'';
+    GRANT ALL PRIVILEGES ON JobDB.* TO 'diracx'@'%';
 
     CREATE DATABASE IF NOT EXISTS `JobLoggingDB`;
-    GRANT ALL PRIVILEGES ON JobLoggingDB.* TO ''diracx''@''%'';
+    GRANT ALL PRIVILEGES ON JobLoggingDB.* TO 'diracx'@'%';
 
     CREATE DATABASE IF NOT EXISTS `PilotAgentsDB`;
-    GRANT ALL PRIVILEGES ON PilotAgentsDB.* TO ''diracx''@''%'';
+    GRANT ALL PRIVILEGES ON PilotAgentsDB.* TO 'diracx'@'%';
 
     CREATE DATABASE IF NOT EXISTS `SandboxMetadataDB`;
-    GRANT ALL PRIVILEGES ON SandboxMetadataDB.* TO ''diracx''@''%'';
+    GRANT ALL PRIVILEGES ON SandboxMetadataDB.* TO 'diracx'@'%';
 
     CREATE DATABASE IF NOT EXISTS `TaskQueueDB`;
-    GRANT ALL PRIVILEGES ON TaskQueueDB.* TO ''diracx''@''%'';
+    GRANT ALL PRIVILEGES ON TaskQueueDB.* TO 'diracx'@'%';
 
     FLUSH PRIVILEGES;
+    {{- end }}
 
-    '
 kind: ConfigMap
 metadata:
   labels:
@@ -239,6 +248,7 @@ metadata:
   namespace: {{ $ns }}
 data:
   diracx_auth_db.sql: |
+    {{- if .Values.mysql.enabled }}
     CREATE DATABASE IF NOT EXISTS `AuthDB`;
     USE AuthDB;
     CREATE TABLE IF NOT EXISTS DeviceFlows (
@@ -270,6 +280,7 @@ data:
         Sub VARCHAR(1024),
         PreferredUsername VARCHAR(255)
     );
+    {{- end }}
 ---
 apiVersion: v1
 data:
