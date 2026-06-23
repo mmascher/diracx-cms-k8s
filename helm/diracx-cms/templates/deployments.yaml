@@ -5,6 +5,19 @@
 {{- $mysqlHost := include "diracx-cms.mysqlHost" . }}
 {{- $osHost   := include "diracx-cms.osHost" . }}
 
+
+{{- /* Set default internal values first */ -}}
+{{- $dbHost := "diracx-cms-mysql" -}}
+{{- $dbPort := 3306 -}}
+
+{{- /* Safely check and override if external values exist */ -}}
+{{- if .Values.external }}
+  {{- if .Values.external.mysql }}
+    {{- $dbHost = .Values.external.mysql.host | default $dbHost -}}
+    {{- $dbPort = .Values.external.mysql.port | default $dbPort -}}
+  {{- end }}
+{{- end }}
+
 # ── DiracX API ────────────────────────────────────────────────────────────────
 ---
 apiVersion: apps/v1
@@ -82,7 +95,8 @@ spec:
         - name: wait-for-mysql
           image: docker.io/library/busybox:latest
           imagePullPolicy: IfNotPresent
-          command: ["sh","-c","until nc -z diracx-cms-mysql 3306; do echo 'Waiting for mysql...'; sleep 3; done;"]
+          #command: ["sh","-c","until nc -z diracx-cms-mysql 3306; do echo 'Waiting for mysql...'; sleep 3; done;"]
+          command: ["sh","-c","until nc -z {{ $dbHost }} {{ $dbPort }}; do echo 'Waiting for mysql...'; sleep 3; done;"]
         - name: wait-for-opensearch
           image: docker.io/library/busybox:latest
           imagePullPolicy: IfNotPresent
@@ -100,24 +114,28 @@ spec:
             - /bin/sh
             - -c
             - |
-              echo "Executing init-diracx-dbs.sql on {{$name}}-mysql"
+              {{- if .Values.mysql.enabled }}
+              echo "Executing init-diracx-dbs.sql on {{ $dbHost }} port {{ $dbPort }}"
               cat /sql/init-diracx-dbs.sql
               mysql \
-                -h {{ $name }}-mysql \
+                -h {{ $dbHost }} -P {{ $dbPort }} \
                 -u root \
                 -p"${MYSQL_ROOT_PASSWORD}" \
                 < /sql/init-diracx-dbs.sql
               echo "Database initialization completed"
-              mysql -h  {{ $name }}-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW DATABASES"
+              mysql -h  {{ $dbHost }} -P {{ $dbPort }} -u root -p"${MYSQL_ROOT_PASSWORD}" -e "SHOW DATABASES"
               echo "Executing diracx_auth_db.sql on {{$name}}-mysql"
               cat /sql2/diracx_auth_db.sql
               mysql \
-                -h {{ $name }}-mysql \
+                -h {{ $dbHost }} -P {{ $dbPort }} \
                 -u root \
                 -p"${MYSQL_ROOT_PASSWORD}" \
               < /sql2/diracx_auth_db.sql
-              mysql -h  {{ $name }}-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "USE AuthDB; SHOW TABLES"
+              mysql -h  {{ $dbHost }} -P {{ $dbPort }} -u root -p"${MYSQL_ROOT_PASSWORD}" -e "USE AuthDB; SHOW TABLES"
               echo "AuthDB database initialization completed"
+              {{- else }}
+              echo "skip init-diracx-dbs.sql for external database"
+              {{- end }}
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -162,6 +180,7 @@ spec:
         - name: diracx
           image: {{ .Values.images.services }}
           imagePullPolicy: {{ .Values.images.pullPolicy }}
+# to debug uvicorn we may use the following command
 #          command:
 #            - /bin/bash
 #            - -c
@@ -174,6 +193,9 @@ spec:
 #              echo "step2: init sql  $ python -m diracx.db init-sql"
 #              echo "step3: start srv $ uvicorn --factory diracx.routers:create_app --host=0.0.0.0 --port=8000 --proxy-headers --forwarded-allow-ips=*"
 #              sleep infinity
+#
+# to start diracx services
+#
           command:
             - /usr/local/bin/_entrypoint.sh
             - tini
