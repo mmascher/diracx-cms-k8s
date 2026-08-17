@@ -3,6 +3,11 @@
 This repository contains extracted Kubernetes manifests from a running DiracX demo cluster,
 organized for manual installation on an **external** (non-kind) Kubernetes cluster.
 
+## Release notes
+- `v0.0.01` tag represents initial successful deployment on test18 CERN k8s
+  cluster. It was verified to work with dirac CLI job submission reported by
+  Marco in his [gist](https://gist.github.com/mmascher/85f8654e6c6e25482728558dea855162)
+
 ## Directory Structure
 
 ```
