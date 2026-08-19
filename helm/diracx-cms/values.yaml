@@ -34,16 +34,28 @@ global:
 
 # ─── Images ──────────────────────────────────────────────────────────────────
 images:
-  services:  ghcr.io/diracgrid/diracx/services:v0.0.13
-  client:    ghcr.io/diracgrid/diracx/client:v0.0.13
-  web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a10
-  dex:       ghcr.io/dexidp/dex:v2.41.1
-  minio:     quay.io/minio/minio:RELEASE.2023-06-19T19-52-50Z
-  mysql:     ubuntu/mysql:8.4-24.04_edge
-  #mysql:     docker.io/bitnamilegacy/mysql:8.0.34-debian-11-r8
-  opensearch: opensearchproject/opensearch:2.8.0
+
+# set of new images
+#  services:  ghcr.io/diracgrid/diracx/services:v0.0.12
+  services:  ghcr.io/diracgrid/diracx/services:v0.3.0
+  client:    ghcr.io/diracgrid/diracx/client:v0.3.0
+  web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a11
+  dex:       ghcr.io/dexidp/dex:v2.45.1
+  minio:     quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z.hotfix.7aa24e772
+  mysql:     ubuntu/mysql:8.4-26.04_stable
+  opensearch: opensearchproject/opensearch:3.8.0
   pullPolicy: Always
 
+# initial set of working images deployed on test18
+#  services:  ghcr.io/diracgrid/diracx/services:v0.0.12
+#  client:    ghcr.io/diracgrid/diracx/client:v0.0.13
+#  web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a10
+#  dex:       ghcr.io/dexidp/dex:v2.41.1
+#  minio:     quay.io/minio/minio:RELEASE.2023-06-19T19-52-50Z
+#  mysql:     ubuntu/mysql:8.4-24.04_edge
+#  opensearch: opensearchproject/opensearch:2.8.0
+#
+#
 csConfig:
   # If set, the chart will copy this file into the init‑cs ConfigMap.
   # Example: default.yaml (must be a file reachable from the Helm client)
@@ -60,6 +72,7 @@ diracx:
     - PilotAgentsDB
     - SandboxMetadataDB
     - TaskQueueDB
+    - ResourceStatusDB
   osDbs:
     - JobParametersDB
     - PilotLogsDB
