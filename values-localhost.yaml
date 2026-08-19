@@ -67,9 +67,11 @@ diracx:
     - SandboxMetadataDB
     - DiracXAuthDB
     - TaskQueueDB
+    - ResourceStatusDB
 
   osDbs:
     - JobParametersDB
+    - PilotLogsDB
 
 persistence:
   diracxCode:
