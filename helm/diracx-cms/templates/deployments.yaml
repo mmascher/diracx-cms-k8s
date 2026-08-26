@@ -243,6 +243,9 @@ spec:
             periodSeconds: 20
             timeoutSeconds: 15
             initialDelaySeconds: 30
+          env:
+            - name: PYTHONPATH
+              value: /src/diracx/diracx-tasks/src
           envFrom:
             - secretRef:
                 name: diracx-secrets
