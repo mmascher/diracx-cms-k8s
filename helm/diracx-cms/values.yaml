@@ -32,18 +32,133 @@ global:
   # StorageClass for ReadWriteMany volumes (CS store, DiracX code)
   storageClassRWX: manila-meyrin-cephfs
 
+initSecrets:
+  enabled: true
+  rbac:
+    create: true
+  serviceAccount:
+    enabled: true
+    create: true
+    name: # Specify a pre-existing ServiceAccount names
+
+rabbitmq:
+  enabled: false
+  # Security context must be set to run on some k8s clusters (e.g. openshift)
+  podSecurityContext:
+    enabled: false
+  containerSecurityContext:
+    enabled: false
+  auth:
+    existingPasswordSecret: rabbitmq-secret
+    existingErlangSecret: rabbitmq-secret
+
+redisTasks:
+  enabled: true
+  port: 6379
+  resources: {}
+
+taskWorkers:
+  enabled: true
+  scheduler:
+    resources: {}
+  workers:
+    small:
+      replicaCount: 1
+      maxConcurrentTasks: 10
+      resources:
+        {}
+        # limits:
+        #   cpu: 100m
+        #   memory: 128Mi
+        # requests:
+        #   cpu: 100m
+        #   memory: 128Mi
+    medium:
+      replicaCount: 1
+      maxConcurrentTasks: 10
+      resources:
+        {}
+        # limits:
+        #   cpu: 500m
+        #   memory: 512Mi
+        # requests:
+        #   cpu: 500m
+        #   memory: 512Mi
+    large:
+      replicaCount: 1
+      maxConcurrentTasks: 10
+      resources:
+        {}
+        # limits:
+        #   cpu: 2000m
+        #   memory: 2Gi
+        # requests:
+        #   cpu: 2000m
+        #   memory: 2Gi
+
+developer:
+  enabled: false
+  # -- Make it possible to launch the demo without having an internet connection
+  offline: false
+  # -- URLs which can be used to access various components of the demo (diracx, seaweedfs, dex, etc).
+  # They are used by the diracx tests
+  urls: {}
+  # -- Path from which to mount source of DIRACX
+  sourcePath: /diracx_source
+  # -- List of packages which are mounted into developer.sourcePath and should be installed with pip install SOURCEPATH/...
+  mountedPythonModulesToInstall: []
+  # -- Use pip install -e for mountedPythonModulesToInstall
+  # This is used by the integration tests because editable install might behave differently
+  editableMountedPythonModules: true
+  # -- Node module to install
+  mountedNodeModuleToInstall: null
+  # -- List of node workspace directories to manage in the diracx-web container (node_modules)
+  nodeWorkspacesDirectories: []
+  # -- Image to use for the webapp if nodeModuleToInstall is set
+  nodeImage: library/node:24-alpine
+  # -- Enable collection of coverage reports (intended for CI usage only)
+  enableCoverage: false
+  # -- Enable automatic reloading inside uvicorn when the sources change
+  # Used by the integration tests for running closer to prod setup
+  autoReload: true
+  # -- If set, mount the CS stored localy instead of initializing a default one
+  localCSPath: /local_cs_store
+  # -- The IP that the demo is running at
+  ipAlias: null
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
 # ─── Images ──────────────────────────────────────────────────────────────────
 images:
-  services:  ghcr.io/diracgrid/diracx/services:v0.0.13
-  client:    ghcr.io/diracgrid/diracx/client:v0.0.13
-  web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a10
-  dex:       ghcr.io/dexidp/dex:v2.41.1
-  minio:     quay.io/minio/minio:RELEASE.2023-06-19T19-52-50Z
-  mysql:     ubuntu/mysql:8.4-24.04_edge
-  #mysql:     docker.io/bitnamilegacy/mysql:8.0.34-debian-11-r8
-  opensearch: opensearchproject/opensearch:2.8.0
+  services:  ghcr.io/diracgrid/diracx/services:v0.3.0
+  client:    ghcr.io/diracgrid/diracx/client:v0.3.0
+  tasks:     ghcr.io/diracgrid/diracx/tasks:v0.3.0
+  secretGenerationImage: ghcr.io/diracgrid/diracx/secret-generation
+  web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a11
+  dex:       ghcr.io/dexidp/dex:v2.45.1
+  minio:     quay.io/minio/minio
+  mysql:     ubuntu/mysql:8.4-26.04_stable
+  opensearch: opensearchproject/opensearch:3.8.0
+  redisTasks: library/redis:7.4.2-alpine
   pullPolicy: Always
 
+# initial set of working images deployed on test18
+#  services:  ghcr.io/diracgrid/diracx/services:v0.0.12
+#  client:    ghcr.io/diracgrid/diracx/client:v0.0.13
+#  web:       ghcr.io/diracgrid/diracx-web/static:v0.1.0-a10
+#  dex:       ghcr.io/dexidp/dex:v2.41.1
+#  minio:     quay.io/minio/minio:RELEASE.2023-06-19T19-52-50Z
+#  mysql:     ubuntu/mysql:8.4-24.04_edge
+#  opensearch: opensearchproject/opensearch:2.8.0
+#
+#
 csConfig:
   # If set, the chart will copy this file into the init‑cs ConfigMap.
   # Example: default.yaml (must be a file reachable from the Helm client)
@@ -71,6 +186,9 @@ diracx:
   sandboxAutoCreateBucket: "true"
   authAccessTokenExpireMinutes: "120"
   authRefreshTokenExpireMinutes: "360"
+  # Service
+  service:
+    port: 8000
 
 # ─── DiracX Web UI ───────────────────────────────────────────────────────────
 web:

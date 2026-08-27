@@ -5,6 +5,9 @@ global:
   storageClass: hostpath
   storageClassRWX: hostpath
 
+developer:
+  enabled: false
+
 # ── MySQL ─────────────────────────────────────
 mysql:
   enabled: true
@@ -67,9 +70,11 @@ diracx:
     - SandboxMetadataDB
     - DiracXAuthDB
     - TaskQueueDB
+    - ResourceStatusDB
 
   osDbs:
     - JobParametersDB
+    - PilotLogsDB
 
 persistence:
   diracxCode:
