@@ -1,0 +1,136 @@
+{{- if .Values.taskWorkers.enabled }}
+{{- $sizes := list "small" "medium" "large" }}
+{{- range $size := $sizes }}
+{{- $worker := index $.Values.taskWorkers.workers $size }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "diracx.taskWorkerName" (dict "root" $ "size" $size) }}
+  labels:
+    {{- include "diracx.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: task-worker
+    app.kubernetes.io/part-of: diracx-tasks
+    diracx.io/task-worker-size: {{ $size }}
+spec:
+  replicas: {{ $worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "diracxTaskWorker.selectorLabels" (dict "root" $ "size" $size) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- with $.Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+        checksum/settings: {{ include (print $.Template.BasePath "/diracx/secrets.yaml") $ | sha256sum }}
+        checksum/init-settings: {{ include (print $.Template.BasePath "/diracx/init-secrets/configmap.yaml") $ | sha256sum }}
+        checksum/entrypoint: {{ include (print $.Template.BasePath "/diracx/diracx-container-entrypoint.yaml") $ | sha256sum }}
+      labels:
+        {{- include "diracxTaskWorker.selectorLabels" (dict "root" $ "size" $size) | nindent 8 }}
+        app.kubernetes.io/component: task-worker
+        app.kubernetes.io/part-of: diracx-tasks
+        diracx.io/task-worker-size: {{ $size }}
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "diracx.serviceAccountName" $ }}
+      securityContext:
+        {{- toYaml $.Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: cs-store-mount
+          persistentVolumeClaim:
+            claimName: pvc-cs-store
+        - name: diracx-src
+          persistentVolumeClaim:
+            claimName: pvc-diracx-code
+        {{- if $.Values.developer.enabled }}
+        - name: cs-store-mount
+          persistentVolumeClaim:
+            claimName: pvc-cs-store
+        {{- end }}
+        {{- if and $.Values.developer.enabled $.Values.developer.mountedPythonModulesToInstall }}
+        - name: diracx-code-mount
+          persistentVolumeClaim:
+            claimName: pvc-diracx-code
+        {{- range $module := $.Values.developer.mountedPythonModulesToInstall }}
+        - name: {{ base $module | lower }}-editable-install
+          emptyDir:
+            sizeLimit: 5Mi
+        {{- end }}
+        {{- end }}
+        - name: container-entrypoint
+          configMap:
+            name: diracx-container-entrypoint
+        - name: jwks-mount
+          secret:
+            secretName: diracx-jwks
+            items:
+            - key: jwks.json
+              path: jwks.json
+      initContainers:
+        - name: wait-for-diracx
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nc -vz {{ include "diracx.fullname" $ }} {{ $.Values.diracx.service.port }}; do echo "Waiting for diracx..."; sleep 3; done;']
+        {{- if $.Values.redisTasks.enabled }}
+        - name: wait-for-task-redis
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nc -vz {{ include "diracx.taskRedisName" $ }} {{ $.Values.redisTasks.port }}; do echo "Waiting for task redis..."; sleep 3; done;']
+        {{- end }}
+      containers:
+        - name: {{ $.Chart.Name }}-task-worker-{{ $size }}
+          securityContext:
+            {{- toYaml $.Values.securityContext | nindent 12 }}
+          image: {{ $.Values.images.tasks }}
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          command: [ "/usr/local/bin/_entrypoint.sh", "tini", "--", "bash", "/entrypoint.sh" ]
+          args:
+            - diracx-task-run
+            - worker
+            - --worker-size={{ $size }}
+            - --max-concurrent-tasks={{ $worker.maxConcurrentTasks }}
+          volumeMounts:
+            - name: cs-store-mount
+              mountPath: /cs_store
+            - name: container-entrypoint
+              mountPath: /entrypoint.sh
+              subPath: entrypoint.sh
+            - name: jwks-mount
+              mountPath: /keystore
+            - name: diracx-src
+              mountPath: /src
+          envFrom:
+            - secretRef:
+                name: diracx-secrets
+            - secretRef:
+                name: diracx-dynamic-secrets
+            {{- if $.Values.diracx.sqlDbs }}
+            - secretRef:
+                name: diracx-sql-connection-urls
+            {{- end }}
+            {{- if $.Values.diracx.osDbs }}
+            - secretRef:
+                name: diracx-os-connection-urls
+            {{- end }}
+            - secretRef:
+                name: diracx-task-redis-url
+          resources:
+            {{- toYaml ($worker.resources | default $.Values.resources | default dict) | nindent 12 }}
+      {{- with $.Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $.Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
+{{- end }}
