@@ -8,29 +8,6 @@ organized for manual installation on an **external** (non-kind) Kubernetes clust
   cluster. It was verified to work with dirac CLI job submission reported by
   Marco in his [gist](https://gist.github.com/mmascher/85f8654e6c6e25482728558dea855162)
 
-## Directory Structure
-
-```
-diracx-k8s/
-├── crds/               # CustomResourceDefinitions (cert-manager)
-├── namespaces/         # Namespace definitions
-├── rbac/               # ServiceAccounts, Roles, RoleBindings
-├── configmaps/         # ConfigMaps
-├── secrets/            # Secrets (⚠ contain real credentials – see notes)
-├── pvcs/               # PersistentVolumeClaims
-├── deployments/        # Deployments
-├── statefulsets/       # StatefulSets (MySQL, OpenSearch)
-├── services/           # Services
-├── ingress/            # Ingress resources
-├── jobs/               # One-time init Jobs
-├── cronjobs/           # Scheduled Jobs
-└── helm/               # Helm chart stub (empty, ready to populate)
-    └── diracx/
-        ├── Chart.yaml
-        ├── values.yaml
-        └── templates/
-```
-
 ---
 
 ## Pre-requisites
@@ -474,21 +451,6 @@ csConfig:
   file: files/default.yml
 ```
 - using git solution **TO BE DETERMINED**
-
-### helm deployment
-
-```
-# to install diracx-cms helm chart please use the following command:
-helm install diracx-cms ./helm/diracx-cms -f values-localhost.yaml --namespace diracx-cms --create-namespace --wait
-
-# to uninstall helm chart you may use
-helm uninstall diracx-cms -n diracx-cms
-
-# to list existing helm chart
-helm list -n diracx-cms
-```
-
-For more information please consule helm/diracx-cms/README.md file
 
 ---
 
