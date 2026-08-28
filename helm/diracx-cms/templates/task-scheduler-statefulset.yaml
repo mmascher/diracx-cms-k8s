@@ -95,6 +95,8 @@ spec:
           env:
             - name: PYTHONPATH
               value: /src/diracx/diracx-tasks/src:/src/diracx/diracx-logic/src:/src/diracx/diracx-core/src
+            - name: DIRACX_TASKS_CONDOR_JOB_EXECUTOR_ENABLED
+              value: "true"
           envFrom:
             - secretRef:
                 name: diracx-secrets
