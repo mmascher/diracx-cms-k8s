@@ -92,6 +92,9 @@ spec:
               mountPath: /keystore
             - name: diracx-src
               mountPath: /src
+          env:
+            - name: PYTHONPATH
+              value: /src/diracx/diracx-tasks/src:/src/diracx/diracx-logic/src:/src/diracx/diracx-core/src
           envFrom:
             - secretRef:
                 name: diracx-secrets
