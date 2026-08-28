@@ -30,7 +30,7 @@ global:
   storageClass: cinder-standard-delete
 
   # StorageClass for ReadWriteMany volumes (CS store, DiracX code)
-  storageClassRWX: manila-meyrin-cephfs
+  storageClassRWX: manila-meyrin-cephfs-delete
 
 initSecrets:
   enabled: true
