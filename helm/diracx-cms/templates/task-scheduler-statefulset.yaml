@@ -94,7 +94,7 @@ spec:
               mountPath: /src
           env:
             - name: PYTHONPATH
-              value: {{ $.Values.taskWorkers.pythonPath | default "/src/diracx/diracx-tasks/src:/src/diracx/diracx-logic/src:/src/diracx/diracx-core/src" | quote }}
+              value: {{ $.Values.taskWorkers.pythonPath | default | quote }}
             - name: DIRACX_TASKS_CONDOR_JOB_EXECUTOR_ENABLED
               value: {{ if hasKey $.Values.taskWorkers "condorJobExecutorEnabled" }}{{ $.Values.taskWorkers.condorJobExecutorEnabled | quote }}{{ else }}"true"{{ end }}
           envFrom:

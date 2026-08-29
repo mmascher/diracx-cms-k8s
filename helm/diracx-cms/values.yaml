@@ -59,6 +59,7 @@ redisTasks:
 
 taskWorkers:
   enabled: true
+  pythonPath: "/src/diracx/diracx-tasks/src:/src/diracx/diracx-logic/src:/src/diracx/diracx-core/src:/src/diracx/diracx-db/src"
   scheduler:
     resources: {}
   workers:
