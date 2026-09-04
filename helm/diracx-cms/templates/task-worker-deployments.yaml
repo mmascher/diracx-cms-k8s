@@ -118,6 +118,8 @@ spec:
             {{- end }}
             - secretRef:
                 name: diracx-task-redis-url
+            - secretRef:
+                name: condor-token
           resources:
             {{- toYaml ($worker.resources | default $.Values.resources | default dict) | nindent 12 }}
       {{- with $.Values.nodeSelector }}
