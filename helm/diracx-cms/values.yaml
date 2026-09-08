@@ -98,6 +98,10 @@ taskWorkers:
         #   cpu: 2000m
         #   memory: 2Gi
 
+htcondor:
+  token: ""
+  enabled: false
+
 developer:
   enabled: false
   # -- Make it possible to launch the demo without having an internet connection
