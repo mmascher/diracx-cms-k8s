@@ -46,6 +46,15 @@ helm install ingress-nginx ingress-nginx/ingress-nginx \
 
 ---
 
+### setup HTCondor token secret
+To submit jobs to the grid we need to provide to our k8s cluster HTCondor
+token:
+```
+kubectl create secret generic condor-token -n diracx-cms --from-literal=CONDOR_TOKEN='YOUR_CONDOR_TOKEN'
+```
+
+---
+
 ## Deploying DiracX on a new cluster
 
 ### Minimal override file
