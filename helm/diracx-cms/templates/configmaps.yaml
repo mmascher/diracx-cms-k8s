@@ -1,6 +1,6 @@
 {{- $name := include "diracx-cms.name" . }}
 {{- $ns   := .Values.global.namespace }}
-+---
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
