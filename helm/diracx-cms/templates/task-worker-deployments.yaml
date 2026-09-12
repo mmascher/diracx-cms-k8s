@@ -103,6 +103,8 @@ spec:
               value: {{ $.Values.taskWorkers.pythonPath | quote }}
             - name: DIRACX_TASKS_CONDOR_JOB_EXECUTOR_ENABLED
               value: {{ if hasKey $.Values.taskWorkers "condorJobExecutorEnabled" }}{{ $.Values.taskWorkers.condorJobExecutorEnabled | quote }}{{ else }}"true"{{ end }}
+            - name: DIRACX_TASKS_CONDOR_JOB_STATUS_COLLECTOR_ENABLED
+              value: {{ if hasKey $.Values.taskWorkers "condorJobExecutorEnabled" }}{{ $.Values.taskWorkers.condorJobExecutorEnabled | quote }}{{ else }}"true"{{ end }}
           envFrom:
             - secretRef:
                 name: diracx-secrets
